@@ -3,13 +3,14 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import VideoPlayer from "./VideoPlayer";
+import ChatView from "./ChatView";
 
 
 const Body = () => {
 
   return (
-    <Container>
-      <Row>
+    <Container fluid>
+      <Row className="px-0">
         {/*"https://commonsi-muc.azureedge.net/contents/MEIJ100001/5e99053415a42/contents/media_files/media/ssmovie.mp4"*/}
         <Col md={9} style={{backgroundColor: "teal"}}>
           <VideoPlayer
@@ -29,14 +30,14 @@ const Body = () => {
               console.log("onPause!", currentTime);
             }}
             onReady={player => {
-              setTimeout(() => {
-                player.play();
-              }, 5000);
+              // setTimeout(() => {
+              //   player.play();
+              // }, 5000);
             }}
           />
         </Col>
-        <Col md={3} style={{backgroundColor: "green"}}>
-
+        <Col md={3} style={{backgroundColor: "#CCFFCC"}}>
+          <ChatView/>
         </Col>
       </Row>
 

@@ -8,7 +8,9 @@ function App(){
   return (
     <>
       <Navbar bg="dark" variant="dark">
-        <Navbar.Brand>Synchronv</Navbar.Brand>
+        <Navbar.Brand>
+          <h3>Synchronv</h3>
+        </Navbar.Brand>
       </Navbar>
       <Body/>
     </>
