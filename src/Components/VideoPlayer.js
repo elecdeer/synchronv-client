@@ -3,36 +3,50 @@ import React, {useEffect, useRef, useState} from 'react';
 import videojs from "video.js"
 import "video.js/dist/video-js.css"
 
-const VideoPlayer = ({options}) => {
+const VideoPlayer = ({
+                       options,
+                       onReady = () => {},
+                       onPlay = () => {},
+                       onPause = () => {},
+                     }) => {
 
   const [player, setPlayer] = useState(null);
-
-  const [videoNode, setVideoNode] = useState(null);
-  // const videoRef = useRef(null);
+  const videoRef = useRef(null);
 
 
   useEffect(() => {
-    if(!videoNode) return;
+    if(!videoRef.current) return;
 
-    const video = videojs(videoNode, options, () => {
-      console.log("player Ready", video);
+    const pl = videojs(videoRef.current, options, () => {
+      console.log("player Ready", pl);
     });
-    setPlayer(video);
 
+    //シーク後の再生でも発火
+    pl.on("play", () => onPlay(pl.currentTime()));
+    pl.on("pause", () => onPause(pl.currentTime()));
+
+
+    pl.ready( () => {
+      console.log("video ready");
+
+      onReady(pl);
+    });
+
+    setPlayer(pl);
+
+
+
+    //onUnmounted
     return () => {
       if(player){
-        video.dispose();
+        player.dispose();
       }
     };
-  }, [videoNode]);
-
+  }, [videoRef]);
 
   return (
     <div data-vjs-player>
-      <video ref={node => {
-        setVideoNode(node);
-        return node;
-      }} className="video-js"></video>
+      <video ref={videoRef} className="video-js"></video>
     </div>
   );
 };
