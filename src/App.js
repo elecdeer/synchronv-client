@@ -10,7 +10,7 @@ export const SocketContext = createContext(null);
 
 const App = () => {
 
-  const [socketIO, setSocketIO] = useState(null);
+  const [ioState, setIoState] = useState(null);
 
   useEffect(() => {
     const url = `${window.location.hostname}:5001`;
@@ -18,17 +18,39 @@ const App = () => {
 
     socketIO.on("connect", () => {
       console.log("Connected!", socketIO.id);
-      // socketIO.emit("join");
+
+
+      socketIO.emit("join", {
+        // session_id: socketIO.id,
+      });
+
     })
 
     //接続時の処理もここに
 
-    setSocketIO(socketIO);
+
+    socketIO.on("participants_changed", data => {
+      console.log("participants_changed", data);
+
+      setIoState({
+        io: socketIO,
+        session_id: data.session_id,
+      });
+    })
+
+
   }, []);
 
 
+  if(!ioState){
+    return (
+      <p>Connectiong...</p>
+    );
+  }
+
+  //socketIO接続できてないのに渡すとめんどいので
   return (
-    <SocketContext.Provider value={socketIO}>
+    <SocketContext.Provider value={ioState}>
       <Header/>
       <Body/>
     </SocketContext.Provider>

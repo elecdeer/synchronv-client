@@ -3,12 +3,15 @@ import React, {useEffect, useRef, useState} from 'react';
 import videojs from "video.js"
 import "video.js/dist/video-js.css"
 
-const VideoPlayer = ({
-                       options,
-                       onReady = () => {},
-                       onPlay = () => {},
-                       onPause = () => {},
-                     }) => {
+const VideoPlayer = (props) => {
+  const {
+    options,
+    onReady = player => {},
+    onPlay = currentTime => {},
+    onPause = currentTime => {},
+    onSeeked = currentTime => {},
+  } = props;
+
 
   const [player, setPlayer] = useState(null);
   const videoRef = useRef(null);
@@ -22,12 +25,13 @@ const VideoPlayer = ({
     });
 
     //シーク後の再生でも発火
-    pl.on("play", () => onPlay(pl.currentTime()));
-    pl.on("pause", () => onPause(pl.currentTime()));
+    pl.on("play", () => onPlay(pl));
+    pl.on("pause", () => onPause(pl));
+    pl.on("seeked", () => onSeeked(pl));
 
 
     pl.ready( () => {
-      console.log("video ready");
+      console.log("video ready", pl);
 
       onReady(pl);
     });
