@@ -32,10 +32,18 @@ const App = () => {
     socketIO.on("participants_changed", data => {
       console.log("participants_changed", data);
 
-      setIoState({
-        io: socketIO,
-        session_id: data.session_id,
-      });
+      if(!ioState){
+        setIoState({
+          io: socketIO,
+          session_id: data.session_id,
+        });
+      }
+    });
+
+    // })
+
+    socketIO.on("participants_changed", data => {
+      console.log("participants_changed!!!");
     })
 
 

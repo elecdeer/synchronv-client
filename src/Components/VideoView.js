@@ -10,6 +10,10 @@ const VideoView = () => {
   const ioState = useContext(SocketContext);
 
   const [player, setPlayer] = useState(null);
+
+  // const [isPlaying, setPlaying] = useState(false);
+  const isPlaying = useRef(false);
+
   const isRemote = useRef(false);
   // const [isRemoteControlling, setRemoteControlling] = useState(false);
 
@@ -22,95 +26,56 @@ const VideoView = () => {
     }],
     playbackRates: [0.5, 0.8, 1.0, 1.2, 1.5, 2],
     liveui: true,
+    autoplay: 'muted',
   };
 
   const handleReady = pl => {
     setPlayer(pl);
     console.log("handleReady", pl);
+    // pl.
+    isRemote.current = true;
   }
 
 
-  const emitSeek = () => {
-
-  }
-
-  const handlePause = (player) => {
-    console.log("onPause!", player.currentTime(), isRemote.current);
-    console.log("count", count++);
-    console.log(player);
-
-    if(isRemote.current){
-      return;
-    }
-
-    // isRemote.current = true;
-    // player.play();
-
+  const emitSeek = (play, position) => {
     const param = {
       session_id: ioState.session_id,
-      position: player.currentTime(),
-      autoplay: false,
+      position: position,
+      autoplay: play,
     }
 
-    console.log("request_seek", param)
+    console.log("request_seek", param);
     ioState.io.emit("request_seek", param);
+  }
+
+
+  const handleUserPlay = (player) => {
+    console.log("onPlay!", player.currentTime(), isRemote.current);
+
+    emitSeek(true, player.currentTime());
+  }
+
+  const handleUserPause = (player) => {
+    console.log("onPause!", player.currentTime(), isRemote.current);
+
+    emitSeek(false, player.currentTime());
   };
 
 
-  const handlePlay = (player) => {
-
-    //自身の操作かリモート操作かを区別する必要がある
-    // player.play()とかをラップすれば良い？
-
-
-    console.log("onPlay!", player.currentTime(), isRemote.current);
-    console.log("count", count++);
-
-
-    if(isRemote.current){
-      return;
-    }
-
-
-    // isRemote.current = true;
-    // player.pause();
-
-    const param = {
-      session_id: ioState.session_id,
-      position: player.currentTime(),
-      autoplay: true,
-    }
-
-    console.log("request_seek", param)
-    ioState.io.emit("request_seek", param);
-  }
 
   const handleSeeked = player => {
-    console.log("onSeeked!", player.currentTime(), isRemote.current);
-
-
-
-    console.log("count", count++);
-    if(isRemote.current){
-      const param = {
-        session_id: ioState.session_id,
-      }
-
-      console.log("ready_to_play", param)
-      ioState.io.emit("ready_to_play", param);
-    }else{
-
-      console.log(player);
-      const param = {
-        session_id: ioState.session_id,
-        position: player.currentTime(),
-        autoplay: player.pause(),
-      }
-
-      console.log("request_seek", param);
-      ioState.io.emit("request_seek", param);
+    isPlaying.current = !player.paused();
+    const param = {
+      session_id: ioState.session_id,
     }
 
+    console.log("ready_to_play", param)
+    ioState.io.emit("ready_to_play", param);
+  }
+
+  const handleUserSeeked = player => {
+    console.log("onSeeked!", player.currentTime(), isRemote.current, isPlaying);
+    emitSeek(isPlaying.current, player.currentTime());
   }
 
 
@@ -137,10 +102,13 @@ const VideoView = () => {
 
       console.log("remote off");
       isRemote.current = false;
+      console.log("\n");
       // setRemoteControlling(false);
     });
 
-  }, [player, ioState]);
+
+
+  }, [player]);
 
 
 
@@ -148,10 +116,19 @@ const VideoView = () => {
     <>
       <VideoPlayer
         options={options}
-        onPlay={handlePlay}
-        onPause={handlePause}
+        onPlay={() => {
+          // setPlaying(true);
+          // isPlaying.current = true;
+        }}
+        onPause={() => {
+          // setPlaying(false);
+          // isPlaying.current = false;
+        }}
+        onUserPlay={handleUserPlay}
+        onUserPause={handleUserPause}
         onReady={handleReady}
         onSeeked={handleSeeked}
+        onUserSeeked={handleUserSeeked}
       />
     </>
   );
