@@ -37,11 +37,11 @@ const VideoView = () => {
   }
 
 
-  const emitSeek = (play, position) => {
+  const emitSeek = (seek_type, position) => {
     const param = {
       session_id: ioState.session_id,
       position: position,
-      autoplay: play,
+      seek_type: seek_type,
     }
 
     console.log("request_seek", param);
@@ -52,13 +52,13 @@ const VideoView = () => {
   const handleUserPlay = (player) => {
     console.log("onPlay!", player.currentTime(), isRemote.current);
 
-    emitSeek(true, player.currentTime());
+    emitSeek("play", player.currentTime());
   }
 
   const handleUserPause = (player) => {
     console.log("onPause!", player.currentTime(), isRemote.current);
 
-    emitSeek(false, player.currentTime());
+    emitSeek("pause", player.currentTime());
   };
 
 
@@ -75,12 +75,28 @@ const VideoView = () => {
 
   const handleUserSeeked = player => {
     console.log("onSeeked!", player.currentTime(), isRemote.current, isPlaying);
-    emitSeek(isPlaying.current, player.currentTime());
+    emitSeek(isPlaying.current ? "seek_play" : "seek_pause", player.currentTime());
   }
+
 
 
   useEffect(() => {
     if(!player) return;
+
+
+    ioState.io.once("notify_seek", data => {
+      console.log("rsv notify_seek", data);
+      player.currentTime(data.position);
+
+      if(data.is_playing && player.paused()){
+        player.play();
+      }
+      if(!data.is_playing && !player.paused()){
+        player.pause();
+      }
+    })
+
+
 
     ioState.io.on("control_seek", (data) => {
       console.log("rsv control_seek", data);
@@ -94,7 +110,7 @@ const VideoView = () => {
 
     ioState.io.on("complete_seek", (data) => {
       console.log("rsv complete_seek", data);
-      if(data.autoplay){
+      if(data.seek_type === "play" || data.seek_type === "seek_play"){
         player.play();
       }else{
         player.pause();
@@ -108,6 +124,12 @@ const VideoView = () => {
 
 
 
+    const param = {
+      session_id: ioState.session_id,
+    }
+    console.log("get_seek", param);
+    ioState.io.emit("get_seek", param);
+
   }, [player]);
 
 
@@ -116,14 +138,6 @@ const VideoView = () => {
     <>
       <VideoPlayer
         options={options}
-        onPlay={() => {
-          // setPlaying(true);
-          // isPlaying.current = true;
-        }}
-        onPause={() => {
-          // setPlaying(false);
-          // isPlaying.current = false;
-        }}
         onUserPlay={handleUserPlay}
         onUserPause={handleUserPause}
         onReady={handleReady}
