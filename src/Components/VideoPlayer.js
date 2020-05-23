@@ -10,10 +10,13 @@ const VideoPlayer = (props) => {
     onPlay = player => {},
     onPause = player => {},
     onSeeked = player => {},
+    onChangeRate = player => {},
 
     onUserPlay = player => {},
     onUserPause = player => {},
     onUserSeeked = player => {},
+    onUserChangeRate = (player, rate) => {},
+
   } = props;
 
 
@@ -40,6 +43,15 @@ const VideoPlayer = (props) => {
         onUserPause(player);
       }
     });
+
+    const rateButtons = player.controlBar.playbackRateMenuButton.menu.children_;
+    for(let button of rateButtons){
+      player.on(button, "click", event => {
+        onUserChangeRate(player, button.rate);
+      })
+    }
+
+
   }, [player]);
 
   useEffect(() => {
@@ -53,6 +65,7 @@ const VideoPlayer = (props) => {
     pl.on("play", () => onPlay(pl));
     pl.on("pause", () => onPause(pl));
     pl.on("seeked", () => onSeeked(pl));
+    pl.on("ratechange", () => onChangeRate(pl));
 
     // pl.on("playing", () => {
     //   console.log("handlePlaying");

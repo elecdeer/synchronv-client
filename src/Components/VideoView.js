@@ -37,11 +37,12 @@ const VideoView = () => {
   }
 
 
-  const emitSeek = (seek_type, position) => {
+  const emitSeek = (seek_type, position, playback_speed) => {
     const param = {
       session_id: ioState.session_id,
-      position: position,
-      seek_type: seek_type,
+      position,
+      seek_type,
+      playback_speed,
     }
 
     console.log("request_seek", param);
@@ -79,6 +80,12 @@ const VideoView = () => {
   }
 
 
+  const handleUserChangeRate = (player, rate) => {
+    console.log("onRateChanged!", rate);
+    emitSeek(isPlaying.current ? "seek_play" : "seek_pause", player.currentTime(), rate);
+  }
+
+
 
   useEffect(() => {
     if(!player) return;
@@ -94,6 +101,8 @@ const VideoView = () => {
       if(!data.is_playing && !player.paused()){
         player.pause();
       }
+
+      player.playbackRate(data.playback_speed);
     })
 
 
@@ -143,6 +152,7 @@ const VideoView = () => {
         onReady={handleReady}
         onSeeked={handleSeeked}
         onUserSeeked={handleUserSeeked}
+        onUserChangeRate={handleUserChangeRate}
       />
     </>
   );
