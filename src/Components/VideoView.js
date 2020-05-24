@@ -125,6 +125,8 @@ const VideoView = () => {
         player.pause();
       }
 
+      player.playbackRate(data.playback_speed);
+
       console.log("remote off");
       isRemote.current = false;
       console.log("\n");
